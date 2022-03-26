@@ -1,33 +1,19 @@
 package ecb
 
 import (
-	"encoding/xml"
-	"io/ioutil"
-	"net/http"
 	"time"
 )
 
 type currencyMap map[string]float64
 
 type ECBConverter struct {
-	url string
+	client *ECBClient
 }
 
 func New(url string) *ECBConverter {
 	return &ECBConverter{
-		url: url,
+		client: &ECBClient{url: url},
 	}
-}
-
-func (c *ECBConverter) fetch() (*ECBResponseData, error) {
-	resp, err := http.Get(c.url)
-	respDataBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	ecbData := ECBResponseData{}
-	xml.Unmarshal(respDataBytes, &ecbData)
-	return &ecbData, err
 }
 
 func (c *ECBConverter) makeRatesMap(data *ECBResponseData) (map[time.Time]currencyMap, error) {
@@ -59,7 +45,7 @@ func (c *ECBConverter) Convert(date time.Time, value float64, from, to string) (
 		return value, nil
 	}
 
-	data, err := c.fetch()
+	data, err := c.client.GetRates()
 	if err != nil {
 		return -1, err
 	}

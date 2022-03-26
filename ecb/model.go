@@ -40,9 +40,11 @@ type Rate struct {
 	Rate     float64 `xml:"rate,attr"`
 }
 
+type Data struct {
+	Date  Date   `xml:"time,attr"`
+	Rates []Rate `xml:"Cube"`
+}
+
 type ECBResponseData struct {
-	Data []struct {
-		Date  Date   `xml:"time,attr"`
-		Rates []Rate `xml:"Cube"`
-	} `xml:"Cube>Cube"`
+	Data []Data `xml:"Cube>Cube"`
 }

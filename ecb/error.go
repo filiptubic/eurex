@@ -26,3 +26,11 @@ type DateParseError struct {
 func (e DateParseError) Error() string {
 	return fmt.Sprintf("%s", e.msg)
 }
+
+type ECBClientError struct {
+	statusCode int
+}
+
+func (e ECBClientError) Error() string {
+	return fmt.Sprintf("http error: code=%v", e.statusCode)
+}
