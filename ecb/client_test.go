@@ -59,7 +59,7 @@ func TestECBClient_GetRates(t *testing.T) {
 			ts := httptest.NewServer(test.handler)
 			defer ts.Close()
 
-			client := New(ts.URL)
+			client := New(&ECBClient{Url: ts.URL})
 			test.verify(client.client.GetRates())
 		})
 	}

@@ -6,12 +6,24 @@ import (
 	"net/http"
 )
 
+type ECBClientInterface interface {
+	GetRates() (*ECBResponseData, error)
+}
+
+type ECBClientMock struct {
+	GetRatesMock func() (*ECBResponseData, error)
+}
+
+func (c *ECBClientMock) GetRates() (*ECBResponseData, error) {
+	return c.GetRatesMock()
+}
+
 type ECBClient struct {
-	url string
+	Url string
 }
 
 func (c *ECBClient) GetRates() (*ECBResponseData, error) {
-	resp, err := http.Get(c.url)
+	resp, err := http.Get(c.Url)
 	if resp.StatusCode/100 != 2 {
 		return nil, ECBClientError{statusCode: resp.StatusCode}
 	}

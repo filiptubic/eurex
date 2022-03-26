@@ -3,15 +3,16 @@ package eurex
 import (
 	"time"
 
+	"github.com/filiptubic/eurex/currency"
 	"github.com/filiptubic/eurex/ecb"
 )
 
 var (
-	DefaultConverter = ecb.New("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml")
+	DefaultConverter = ecb.New(&ecb.ECBClient{Url: "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"})
 )
 
 type ConverterInterface interface {
-	Convert(date time.Time, value float64, from, to string) (converted float64, err error)
+	Convert(date time.Time, value float64, from, to currency.Currency) (converted float64, err error)
 }
 
 type Converter struct {
@@ -24,6 +25,6 @@ func New(converter ConverterInterface) *Converter {
 	}
 }
 
-func (c *Converter) Convert(date time.Time, value float64, from, to string) (float64, error) {
+func (c *Converter) Convert(date time.Time, value float64, from, to currency.Currency) (float64, error) {
 	return c.converter.Convert(date, value, from, to)
 }
