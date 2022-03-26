@@ -1,8 +1,9 @@
 package eurex
 
 import (
-	"eurex/ecb"
 	"time"
+
+	"github.com/filiptubic/eurex/ecb"
 )
 
 var (
