@@ -24,12 +24,13 @@ type ECBClient struct {
 
 func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 	resp, err := http.Get(c.Url)
-	if resp.StatusCode/100 != 2 {
-		return nil, ECBClientError{statusCode: resp.StatusCode}
-	}
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode/100 != 2 {
+		return nil, ECBClientError{statusCode: resp.StatusCode}
+	}
+
 	respDataBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
