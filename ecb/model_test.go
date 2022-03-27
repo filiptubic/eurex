@@ -8,12 +8,12 @@ import (
 func TestDate_toTime(t *testing.T) {
 	tt := []struct {
 		name   string
-		date   Date
+		date   DateXML
 		verify func(value time.Time, err error)
 	}{
 		{
 			name: "invalid date format",
-			date: Date("12/11"),
+			date: DateXML("12/11"),
 			verify: func(value time.Time, err error) {
 				if _, ok := err.(InvalidDateFormat); !ok {
 					t.Errorf("expected InvalidDateFormat got: %v", err)

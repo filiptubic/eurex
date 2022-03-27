@@ -89,11 +89,11 @@ func (c *ECBConverter) GetRates(date time.Time) (*Rates, error) {
 }
 
 func (c *ECBConverter) Convert(date time.Time, value float64, from, to currency.Currency) (float64, error) {
-	if !IsValid(from, date) {
+	if !IsValidCurrency(from, date) {
 		return -1, InvalidCurrency{string(from)}
 	}
 
-	if !IsValid(to, date) {
+	if !IsValidCurrency(to, date) {
 		return -1, InvalidCurrency{string(to)}
 	}
 

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	GetRatesPath = "stats/eurofxref/eurofxref-hist-90d.xml"
+	getRatesPath = "stats/eurofxref/eurofxref-hist-90d.xml"
 )
 
 type ECBClientInterface interface {
@@ -60,7 +60,7 @@ func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 	url := url.URL{
 		Scheme: c.scheme,
 		Host:   c.host,
-		Path:   GetRatesPath,
+		Path:   getRatesPath,
 	}
 
 	var resp *http.Response

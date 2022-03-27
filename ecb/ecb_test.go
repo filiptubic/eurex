@@ -18,9 +18,9 @@ func TestECBConverter_newRates(t *testing.T) {
 		{
 			name: "ok map",
 			data: &ECBResponseData{
-				Data: []Data{
-					{Date: Date("2022-1-4"), Rates: []Rate{{Currency: "USD", Rate: 1.5}}},
-					{Date: Date("2022-1-3"), Rates: []Rate{{Currency: "TRY", Rate: 2}}},
+				Data: []DataXML{
+					{Date: DateXML("2022-1-4"), Rates: []RateXML{{Currency: "USD", Rate: 1.5}}},
+					{Date: DateXML("2022-1-3"), Rates: []RateXML{{Currency: "TRY", Rate: 2}}},
 				},
 			},
 			verify: func(rates *Rates, err error) {
@@ -44,8 +44,8 @@ func TestECBConverter_newRates(t *testing.T) {
 		{
 			name: "invalid date layout",
 			data: &ECBResponseData{
-				Data: []Data{
-					{Date: Date("invalid date")},
+				Data: []DataXML{
+					{Date: DateXML("invalid date")},
 				},
 			},
 			verify: func(m *Rates, err error) {
@@ -57,8 +57,8 @@ func TestECBConverter_newRates(t *testing.T) {
 		{
 			name: "invalid currency",
 			data: &ECBResponseData{
-				Data: []Data{
-					{Date: Date("2022-12-12"), Rates: []Rate{{Currency: "UNKNOWN"}}},
+				Data: []DataXML{
+					{Date: DateXML("2022-12-12"), Rates: []RateXML{{Currency: "UNKNOWN"}}},
 				},
 			},
 			verify: func(m *Rates, err error) {
@@ -70,12 +70,12 @@ func TestECBConverter_newRates(t *testing.T) {
 		{
 			name: "validate first and last date",
 			data: &ECBResponseData{
-				Data: []Data{
-					{Date: Date("2022-5-5"), Rates: []Rate{{Currency: "USD"}}},
-					{Date: Date("2023-1-1"), Rates: []Rate{{Currency: "USD"}}},
-					{Date: Date("2022-4-3"), Rates: []Rate{{Currency: "USD"}}},
-					{Date: Date("2022-1-1"), Rates: []Rate{{Currency: "USD"}}},
-					{Date: Date("2022-5-3"), Rates: []Rate{{Currency: "USD"}}},
+				Data: []DataXML{
+					{Date: DateXML("2022-5-5"), Rates: []RateXML{{Currency: "USD"}}},
+					{Date: DateXML("2023-1-1"), Rates: []RateXML{{Currency: "USD"}}},
+					{Date: DateXML("2022-4-3"), Rates: []RateXML{{Currency: "USD"}}},
+					{Date: DateXML("2022-1-1"), Rates: []RateXML{{Currency: "USD"}}},
+					{Date: DateXML("2022-5-3"), Rates: []RateXML{{Currency: "USD"}}},
 				},
 			},
 			verify: func(m *Rates, err error) {
@@ -113,10 +113,10 @@ func TestEcbConverter_GetRates(t *testing.T) {
 			c: ECBConverter{cache: true, cached: nil, client: &ECBClientMock{
 				GetRatesMock: func() (*ECBResponseData, error) {
 					return &ECBResponseData{
-						Data: []Data{
+						Data: []DataXML{
 							{
-								Date:  Date("2022-1-1"),
-								Rates: []Rate{{Currency: "USD", Rate: 2}},
+								Date:  DateXML("2022-1-1"),
+								Rates: []RateXML{{Currency: "USD", Rate: 2}},
 							},
 						},
 					}, nil
@@ -174,14 +174,14 @@ func TestEcbConverter_GetRates(t *testing.T) {
 				},
 				client: &ECBClientMock{GetRatesMock: func() (*ECBResponseData, error) {
 					return &ECBResponseData{
-						Data: []Data{
+						Data: []DataXML{
 							{
-								Date:  Date("2022-1-1"),
-								Rates: []Rate{{Currency: "USD", Rate: 2}},
+								Date:  DateXML("2022-1-1"),
+								Rates: []RateXML{{Currency: "USD", Rate: 2}},
 							},
 							{
-								Date:  Date("2022-1-2"),
-								Rates: []Rate{{Currency: "USD", Rate: 3}},
+								Date:  DateXML("2022-1-2"),
+								Rates: []RateXML{{Currency: "USD", Rate: 3}},
 							},
 						},
 					}, nil
@@ -207,10 +207,10 @@ func TestEcbConverter_GetRates(t *testing.T) {
 				client: &ECBClientMock{
 					GetRatesMock: func() (*ECBResponseData, error) {
 						return &ECBResponseData{
-							Data: []Data{
+							Data: []DataXML{
 								{
-									Date:  Date("2022-1-1"),
-									Rates: []Rate{{Currency: "USD", Rate: 2}},
+									Date:  DateXML("2022-1-1"),
+									Rates: []RateXML{{Currency: "USD", Rate: 2}},
 								},
 							},
 						}, nil
@@ -291,10 +291,10 @@ func TestECBConverter_Convert(t *testing.T) {
 			value: 10,
 			GetRatesMock: func() (*ECBResponseData, error) {
 				return &ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date:  Date("2022-1-4"),
-							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+							Date:  DateXML("2022-1-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
 						},
 					},
 				}, nil
@@ -316,16 +316,16 @@ func TestECBConverter_Convert(t *testing.T) {
 			value: 10,
 			GetRatesMock: func() (*ECBResponseData, error) {
 				return &ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date: Date("2022-1-4"),
-							Rates: []Rate{
+							Date: DateXML("2022-1-4"),
+							Rates: []RateXML{
 								{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3},
 							},
 						},
 						{
-							Date: Date("2022-1-3"),
-							Rates: []Rate{
+							Date: DateXML("2022-1-3"),
+							Rates: []RateXML{
 								{Currency: "USD", Rate: 3}, {Currency: "JPY", Rate: 3},
 							},
 						},
@@ -349,10 +349,10 @@ func TestECBConverter_Convert(t *testing.T) {
 			value: 14,
 			GetRatesMock: func() (*ECBResponseData, error) {
 				return &ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date:  Date("2022-1-4"),
-							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+							Date:  DateXML("2022-1-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
 						},
 					},
 				}, nil
@@ -387,9 +387,9 @@ func TestECBConverter_Convert(t *testing.T) {
 			to:   currency.JPY,
 			GetRatesMock: func() (*ECBResponseData, error) {
 				return &ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date: Date("INVALID"),
+							Date: DateXML("INVALID"),
 						},
 					},
 				}, nil
@@ -407,14 +407,14 @@ func TestECBConverter_Convert(t *testing.T) {
 			to:   currency.JPY,
 			GetRatesMock: func() (*ECBResponseData, error) {
 				return &ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date:  Date("2022-1-4"),
-							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+							Date:  DateXML("2022-1-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
 						},
 						{
-							Date:  Date("2021-4-4"),
-							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+							Date:  DateXML("2021-4-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
 						},
 					},
 				}, nil
@@ -432,14 +432,14 @@ func TestECBConverter_Convert(t *testing.T) {
 			to:   currency.JPY,
 			GetRatesMock: func() (*ECBResponseData, error) {
 				return &ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date:  Date("2022-1-4"),
-							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+							Date:  DateXML("2022-1-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
 						},
 						{
-							Date:  Date("2021-4-4"),
-							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+							Date:  DateXML("2021-4-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
 						},
 					},
 				}, nil

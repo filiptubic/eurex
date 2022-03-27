@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// InvalidCurrency is used when currency is invalid on not registered for specific converter.
 type InvalidCurrency struct {
 	currency string
 }
@@ -13,6 +14,7 @@ func (e InvalidCurrency) Error() string {
 	return fmt.Sprintf("invalid currency: %s", e.currency)
 }
 
+// InvalidDateFormat is used when date is invalid format (eg. not in "yyyy-dd-mm" layout for ECB).
 type InvalidDateFormat struct {
 	date   string
 	layout string
@@ -22,6 +24,7 @@ func (e InvalidDateFormat) Error() string {
 	return fmt.Sprintf("expected date layout: %s, got %s", e.layout, e.date)
 }
 
+// DateParseError is used when date parsing failed due malformed year/month/day.
 type DateParseError struct {
 	msg string
 }
@@ -30,6 +33,7 @@ func (e DateParseError) Error() string {
 	return fmt.Sprintf("%s", e.msg)
 }
 
+// ECBClientError represents HTTP related errors (eg. 5xx status codes)
 type ECBClientError struct {
 	statusCode int
 }
@@ -38,6 +42,7 @@ func (e ECBClientError) Error() string {
 	return fmt.Sprintf("http error: code=%v", e.statusCode)
 }
 
+// DateOutOfBound is used when querying date does is out of possible dates of conversion.
 type DateOutOfBound struct {
 	date        time.Time
 	first, last time.Time

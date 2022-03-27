@@ -7,9 +7,11 @@ import (
 	"time"
 )
 
-type Date string
+// RateXML is string type alias used for unmarshaling date from
+// https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml.
+type DateXML string
 
-func (d Date) toTime() (time.Time, error) {
+func (d DateXML) toTime() (time.Time, error) {
 	parts := strings.Split(string(d), "-")
 	if len(parts) != 3 {
 		return time.Time{}, InvalidDateFormat{layout: "yyyy-dd-mm", date: string(d)}
@@ -35,16 +37,22 @@ func (d Date) toTime() (time.Time, error) {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local), nil
 }
 
-type Rate struct {
+// RateXML is type used for unmarshaling rate XML data from
+// https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml.
+type RateXML struct {
 	Currency string  `xml:"currency,attr"`
 	Rate     float64 `xml:"rate,attr"`
 }
 
-type Data struct {
-	Date  Date   `xml:"time,attr"`
-	Rates []Rate `xml:"Cube"`
+// DataXML is type used for unmarshaling XML data from
+// https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml.
+type DataXML struct {
+	Date  DateXML   `xml:"time,attr"`
+	Rates []RateXML `xml:"Cube"`
 }
 
+// ECBResponseData is type used for unmarshaling XML data from
+// https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml.
 type ECBResponseData struct {
-	Data []Data `xml:"Cube>Cube"`
+	Data []DataXML `xml:"Cube>Cube"`
 }

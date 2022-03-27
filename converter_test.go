@@ -12,10 +12,10 @@ func TestConverter_Convert(t *testing.T) {
 	date := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
 	converter := New(ecb.New(&ecb.ECBClientMock{GetRatesMock: func() (*ecb.ECBResponseData, error) {
 		return &ecb.ECBResponseData{
-			Data: []ecb.Data{
+			Data: []ecb.DataXML{
 				{
 					Date: "2022-1-1",
-					Rates: []ecb.Rate{
+					Rates: []ecb.RateXML{
 						{
 							Currency: "USD",
 							Rate:     2,

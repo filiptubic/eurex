@@ -1,13 +1,24 @@
 package ecb
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/filiptubic/eurex/currency"
 )
 
-func TestIsValid(t *testing.T) {
+func ExampleIsValidCurrency() {
+	firstOfMarch := time.Date(2022, time.March, 1, 0, 0, 0, 0, time.Local)
+	secondOfMarch := time.Date(2022, time.March, 2, 0, 0, 0, 0, time.Local)
+	fmt.Println(IsValidCurrency(currency.RUB, firstOfMarch))
+	fmt.Println(IsValidCurrency(currency.RUB, secondOfMarch))
+	// Output:
+	// true
+	// false
+}
+
+func TestIsValidCurrency(t *testing.T) {
 	tt := []struct {
 		name     string
 		date     time.Time
@@ -42,7 +53,7 @@ func TestIsValid(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(t.Name(), func(t *testing.T) {
-			if ok := IsValid(test.currency, test.date); ok != test.expected {
+			if ok := IsValidCurrency(test.currency, test.date); ok != test.expected {
 				t.Errorf("expected %v, got %v", test.expected, ok)
 			}
 		})

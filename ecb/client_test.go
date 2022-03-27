@@ -22,10 +22,10 @@ func TestECBClient_GetRates(t *testing.T) {
 			name: "valid response",
 			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				data := ECBResponseData{
-					Data: []Data{
+					Data: []DataXML{
 						{
-							Date: Date("2002-2-2"),
-							Rates: []Rate{
+							Date: DateXML("2002-2-2"),
+							Rates: []RateXML{
 								{Currency: "USD", Rate: 1.234},
 							},
 						},
@@ -41,7 +41,7 @@ func TestECBClient_GetRates(t *testing.T) {
 				if len(data.Data) != 1 {
 					t.Fatalf("expecting one data, got: %d", len(data.Data))
 				}
-				if data.Data[0].Date != Date("2002-2-2") {
+				if data.Data[0].Date != DateXML("2002-2-2") {
 					t.Errorf("expecting '2002-2-2' got: %s", data.Data[0].Date)
 				}
 			},
