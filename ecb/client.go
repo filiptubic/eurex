@@ -63,7 +63,7 @@ func NewECBClient(scheme, host string, options *ECBOptions, logger *log.Logger) 
 	}
 }
 
-// GetRates make http request to ECB to fetch rates data in form of XML. In case of non 2xx status code it fails with ECBClientError.
+// GetRates makes http request to ECB to fetch rates data in form of XML. In case of non 2xx status code it fails with ECBClientError.
 // If code is 5xx then it will try to retry requests using policy specified in ECBOptions.
 func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 	url := url.URL{

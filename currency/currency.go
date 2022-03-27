@@ -4,7 +4,7 @@
 package currency
 
 // Currency is string type alias which represends all possible currencies.
-// Its designed to be used in ConverterInterface API.
+// Its designed to be used in Converter API.
 type Currency string
 
 var (

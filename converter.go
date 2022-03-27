@@ -1,3 +1,7 @@
+/*
+ This package defines Converter API for money conversion from one currency to another.
+ Default implementation uses ECB and more details are available inside ecb package.
+*/
 package eurex
 
 import (

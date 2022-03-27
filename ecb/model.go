@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// RateXML is string type alias used for unmarshaling date from
+// DateXML is string type alias used for unmarshaling date from
 // https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml.
 type DateXML string
 

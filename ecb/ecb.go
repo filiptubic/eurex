@@ -1,3 +1,10 @@
+/*
+	This package holds everything related to ECB converter. Since ECB updates are rare (once per day), converter client uses caching
+	in order to boost perfomance and avoid necessary http calls. Keep in mind that ECB has data for the last 90 days and accessing data
+	outside of this timeline will result in error.
+
+	NOTE: Russian RUB currency is removed from ECB and the last EUR/RUB update was on 1. March 2022.
+*/
 package ecb
 
 import (
