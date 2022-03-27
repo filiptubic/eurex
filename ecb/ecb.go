@@ -126,6 +126,14 @@ func (c *ECBConverter) Convert(date time.Time, value float64, from, to currency.
 		return -1, DateOutOfBound{date, rates.first, rates.last}
 	}
 
+	if _, ok := rates.rates[date][from]; from != currency.EUR && !ok {
+		return -1, InvalidCurrency{string(from)}
+	}
+
+	if _, ok := rates.rates[date][to]; to != currency.EUR && !ok {
+		return -1, InvalidCurrency{string(from)}
+	}
+
 	if from == currency.EUR {
 		return value * rates.rates[date][to], nil
 	}

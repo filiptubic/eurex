@@ -479,6 +479,48 @@ func TestECBConverter_Convert(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "server missing to currency",
+			date: time.Date(2022, 1, 4, 0, 0, 0, 0, time.Local),
+			from: currency.USD,
+			to:   currency.JPY,
+			GetRatesMock: func() (*ECBResponseData, error) {
+				return &ECBResponseData{
+					Data: []DataXML{
+						{
+							Date:  DateXML("2022-1-4"),
+							Rates: []RateXML{{Currency: "USD", Rate: 2}},
+						},
+					},
+				}, nil
+			},
+			verify: func(value float64, err error) {
+				if _, ok := err.(InvalidCurrency); !ok {
+					t.Errorf("expecting InvalidCurrency, got: %v", err)
+				}
+			},
+		},
+		{
+			name: "server missing from currency",
+			date: time.Date(2022, 1, 4, 0, 0, 0, 0, time.Local),
+			from: currency.USD,
+			to:   currency.JPY,
+			GetRatesMock: func() (*ECBResponseData, error) {
+				return &ECBResponseData{
+					Data: []DataXML{
+						{
+							Date:  DateXML("2022-1-4"),
+							Rates: []RateXML{{Currency: "JPY", Rate: 2}},
+						},
+					},
+				}, nil
+			},
+			verify: func(value float64, err error) {
+				if _, ok := err.(InvalidCurrency); !ok {
+					t.Errorf("expecting InvalidCurrency, got: %v", err)
+				}
+			},
+		},
 	}
 
 	for _, test := range tt {
