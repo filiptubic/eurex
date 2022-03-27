@@ -9,12 +9,10 @@ import (
 )
 
 var (
-	DefaultLogger    = log.New()
-	DefaultConverter = ecb.New(
-		ecb.NewECBClient("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml", DefaultLogger),
-		true,
-		DefaultLogger,
-	)
+	DefaultLogger        = log.New()
+	DefaultClientOptions = ecb.NewECBOptions(3, time.Second*3)
+	DefaultClient        = ecb.NewECBClient("https", "www.ecb.europa.eu", DefaultClientOptions, DefaultLogger)
+	DefaultConverter     = ecb.New(DefaultClient, true, DefaultLogger)
 )
 
 type ConverterInterface interface {

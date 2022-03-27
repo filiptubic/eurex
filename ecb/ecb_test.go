@@ -360,6 +360,56 @@ func TestECBConverter_Convert(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "query date too old",
+			date: time.Date(2020, 5, 5, 0, 0, 0, 0, time.Local),
+			from: currency.USD,
+			to:   currency.JPY,
+			GetRatesMock: func() (*ECBResponseData, error) {
+				return &ECBResponseData{
+					Data: []Data{
+						{
+							Date:  Date("2022-1-4"),
+							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+						},
+						{
+							Date:  Date("2021-4-4"),
+							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+						},
+					},
+				}, nil
+			},
+			verify: func(value float64, err error) {
+				if _, ok := err.(DateOutOfBound); !ok {
+					t.Errorf("expecting DateOutOfBound, got: %v", err)
+				}
+			},
+		},
+		{
+			name: "query date too new",
+			date: time.Date(2022, 1, 5, 0, 0, 0, 0, time.Local),
+			from: currency.USD,
+			to:   currency.JPY,
+			GetRatesMock: func() (*ECBResponseData, error) {
+				return &ECBResponseData{
+					Data: []Data{
+						{
+							Date:  Date("2022-1-4"),
+							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+						},
+						{
+							Date:  Date("2021-4-4"),
+							Rates: []Rate{{Currency: "USD", Rate: 2}, {Currency: "JPY", Rate: 3}},
+						},
+					},
+				}, nil
+			},
+			verify: func(value float64, err error) {
+				if _, ok := err.(DateOutOfBound); !ok {
+					t.Errorf("expecting DateOutOfBound, got: %v", err)
+				}
+			},
+		},
 	}
 
 	for _, test := range tt {

@@ -1,6 +1,9 @@
 package ecb
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type InvalidCurrency struct {
 	currency string
@@ -33,4 +36,13 @@ type ECBClientError struct {
 
 func (e ECBClientError) Error() string {
 	return fmt.Sprintf("http error: code=%v", e.statusCode)
+}
+
+type DateOutOfBound struct {
+	date        time.Time
+	first, last time.Time
+}
+
+func (e DateOutOfBound) Error() string {
+	return fmt.Sprintf("%v out of date scope: [%v, %v]", e.date, e.first, e.last)
 }

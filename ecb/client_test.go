@@ -4,7 +4,9 @@ import (
 	"encoding/xml"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -61,8 +63,29 @@ func TestECBClient_GetRates(t *testing.T) {
 			ts := httptest.NewServer(test.handler)
 			defer ts.Close()
 
-			client := NewECBClient(ts.URL, log.New())
+			url, _ := url.Parse(ts.URL)
+
+			client := NewECBClient(url.Scheme, url.Host, NewECBOptions(0, time.Second), log.New())
 			test.verify(client.GetRates())
 		})
+	}
+}
+
+func TestECBClient_GetRates_retry(t *testing.T) {
+	retries := []int{0, 3, 5}
+	for _, retry := range retries {
+		called := 0
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called++
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+		url, _ := url.Parse(ts.URL)
+		client := NewECBClient(url.Scheme, url.Host, NewECBOptions(retry, time.Second*0), log.New())
+		client.GetRates()
+
+		if called-1 != retry {
+			t.Errorf("expecting %d retries, got %d", retry, called-1)
+		}
 	}
 }

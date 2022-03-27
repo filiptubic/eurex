@@ -106,6 +106,10 @@ func (c *ECBConverter) Convert(date time.Time, value float64, from, to currency.
 		return -1, err
 	}
 
+	if date.Before(rates.first) || date.After(rates.last) {
+		return -1, DateOutOfBound{date, rates.first, rates.last}
+	}
+
 	if from == currency.EUR {
 		return value * rates.rates[date][to], nil
 	}
