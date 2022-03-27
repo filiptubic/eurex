@@ -1,3 +1,6 @@
+/*
+	Use this package to access complete list of currencies. Various converters use various subsets of this list.
+*/
 package currency
 
 // Currency is string type alias which represends all possible currencies.

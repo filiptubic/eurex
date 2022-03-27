@@ -2,6 +2,7 @@ package ecb
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -236,6 +237,34 @@ func TestEcbConverter_GetRates(t *testing.T) {
 			test.verify(test.c.GetRates(test.date))
 		})
 	}
+}
+
+func ExampleECBConverter_Convert() {
+	client := ECBClientMock{
+		GetRatesMock: func() (*ECBResponseData, error) {
+			return &ECBResponseData{
+				Data: []DataXML{
+					{
+						Date: "2002-1-1", Rates: []RateXML{
+							{Currency: "USD", Rate: 2},
+							{Currency: "PLN", Rate: 3},
+						},
+					},
+				},
+			}, nil
+		},
+	}
+	date := time.Date(2022, time.January, 1, 0, 0, 0, 0, time.Local)
+
+	converter := New(&client, true, log.New())
+	converted, err := converter.Convert(date, 10, currency.USD, currency.PLN)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(converted)
+	// Outputs: 15
 }
 
 func TestECBConverter_Convert(t *testing.T) {

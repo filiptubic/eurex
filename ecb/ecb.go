@@ -9,11 +9,15 @@ import (
 
 type currencyMap map[currency.Currency]float64
 
+// Rates is type used for storing ECB rates.
+// As underlaying data structure it uses hash map for quick access to specific currency rate for certain date.
+// Additionally, it holds information what is to most earliest/oldest date available.
 type Rates struct {
 	first, last time.Time
 	rates       map[time.Time]currencyMap
 }
 
+// ECBConverter is ECB implementation of Converter interface. It supports rates caching for better perfomance.
 type ECBConverter struct {
 	logger *log.Logger
 	cache  bool
@@ -21,6 +25,7 @@ type ECBConverter struct {
 	client ECBClientInterface
 }
 
+// New creates ECBConverter object.
 func New(client ECBClientInterface, cache bool, logger *log.Logger) *ECBConverter {
 	if logger == nil {
 		logger = log.New()
@@ -28,6 +33,7 @@ func New(client ECBClientInterface, cache bool, logger *log.Logger) *ECBConverte
 	return &ECBConverter{client: client, cache: cache, logger: logger}
 }
 
+// newRates makes Rates object from raw ECBResponseData object.
 func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {
 	rates := &Rates{
 		rates: make(map[time.Time]currencyMap),
@@ -65,6 +71,8 @@ func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {
 	return rates, nil
 }
 
+// GetRates fetches rates via ECBClient if rate for certain date is not found in cache or caching is disabled.
+// When caching is enabled, and cache is present, new data is added to cache only when queried date is not found inside cache.
 func (c *ECBConverter) GetRates(date time.Time) (*Rates, error) {
 	if c.cache && c.cached != nil && c.cached.rates != nil {
 		if _, ok := c.cached.rates[date]; ok {
@@ -88,6 +96,7 @@ func (c *ECBConverter) GetRates(date time.Time) (*Rates, error) {
 	return rates, nil
 }
 
+// Convert converts specified value from one currency to another for certian date.
 func (c *ECBConverter) Convert(date time.Time, value float64, from, to currency.Currency) (float64, error) {
 	if !IsValidCurrency(from, date) {
 		return -1, InvalidCurrency{string(from)}
