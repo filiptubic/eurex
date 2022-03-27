@@ -50,4 +50,5 @@ go test -coverprofile=coverage.out ./... -v
 
 ## Docs
 Docs are available [here](https://pkg.go.dev/github.com/filiptubic/eurex).
-Docs are locally available by invoking `godoc` and opening http://localhost:6060/pkg/github.com/filiptubic/eurex/ in browser.
+
+Docs are locally available by invoking `godoc` in project root and opening http://localhost:6060/pkg/github.com/filiptubic/eurex/ in browser.

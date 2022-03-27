@@ -245,7 +245,7 @@ func ExampleECBConverter_Convert() {
 			return &ECBResponseData{
 				Data: []DataXML{
 					{
-						Date: "2002-1-1", Rates: []RateXML{
+						Date: "2022-1-1", Rates: []RateXML{
 							{Currency: "USD", Rate: 2},
 							{Currency: "PLN", Rate: 3},
 						},
