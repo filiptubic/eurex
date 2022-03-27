@@ -33,7 +33,7 @@ func (e DateParseError) Error() string {
 	return fmt.Sprintf("%s", e.msg)
 }
 
-// ECBClientError represents HTTP related errors (eg. 5xx status codes)
+// ECBClientError represents HTTP related errors (eg. 4xx status codes)
 type ECBClientError struct {
 	statusCode int
 }
@@ -42,7 +42,7 @@ func (e ECBClientError) Error() string {
 	return fmt.Sprintf("http error: code=%v", e.statusCode)
 }
 
-// DateOutOfBound is used when querying date does is out of possible dates of conversion.
+// DateOutOfBound is used when querying date is out of possible dates of conversion.
 type DateOutOfBound struct {
 	date        time.Time
 	first, last time.Time

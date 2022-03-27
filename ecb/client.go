@@ -16,23 +16,28 @@ const (
 	getRatesPath = "stats/eurofxref/eurofxref-hist-90d.xml"
 )
 
+// ECBClientInterface defines ECB client API.
 type ECBClientInterface interface {
 	GetRates() (*ECBResponseData, error)
 }
 
+// ECBClientMock type used for mocking http layer in tests.
 type ECBClientMock struct {
 	GetRatesMock func() (*ECBResponseData, error)
 }
 
+// GetRates calls GetRatesMock.
 func (c *ECBClientMock) GetRates() (*ECBResponseData, error) {
 	return c.GetRatesMock()
 }
 
+// ECBOptions allow client configuration, eg: specify retry count and their delay.
 type ECBOptions struct {
 	retry int
 	wait  time.Duration
 }
 
+// NewECBOptions creates ECBOptions object.
 func NewECBOptions(retry int, wait time.Duration) *ECBOptions {
 	return &ECBOptions{
 		retry: retry,
@@ -40,6 +45,7 @@ func NewECBOptions(retry int, wait time.Duration) *ECBOptions {
 	}
 }
 
+// ECBClient implements ECBClientInterface, therefore implements how rates are fetched via ECB. Additionally it can be configured using ECBOptions.
 type ECBClient struct {
 	logger  *log.Logger
 	scheme  string
@@ -47,6 +53,7 @@ type ECBClient struct {
 	options *ECBOptions
 }
 
+// NewECBClient creates new ECBClient.
 func NewECBClient(scheme, host string, options *ECBOptions, logger *log.Logger) *ECBClient {
 	return &ECBClient{
 		logger:  logger,
@@ -56,6 +63,8 @@ func NewECBClient(scheme, host string, options *ECBOptions, logger *log.Logger) 
 	}
 }
 
+// GetRates make http request to ECB to fetch rates data in form of XML. In case of non 2xx status code it fails with ECBClientError.
+// If code is 5xx then it will try to retry requests using policy specified in ECBOptions.
 func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 	url := url.URL{
 		Scheme: c.scheme,

@@ -45,7 +45,6 @@ var (
 )
 
 // IsValidCurrency check whether currency is valid for certain date.
-// For example: Russian RUB is invalid after "1-March-2022".
 func IsValidCurrency(c currency.Currency, date time.Time) bool {
 	_, ok := validCurrencies[c]
 	if !ok {
