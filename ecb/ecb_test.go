@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/filiptubic/eurex/currency"
+	log "github.com/sirupsen/logrus"
 )
 
-func TestECBConverter_makeRatesMap(t *testing.T) {
+func TestECBConverter_newRates(t *testing.T) {
 	tt := []struct {
 		name   string
 		data   *ECBResponseData
-		verify func(m map[time.Time]currencyMap, err error)
+		verify func(m *Rates, err error)
 	}{
 		{
 			name: "ok map",
@@ -22,20 +23,20 @@ func TestECBConverter_makeRatesMap(t *testing.T) {
 					{Date: Date("2022-1-3"), Rates: []Rate{{Currency: "TRY", Rate: 2}}},
 				},
 			},
-			verify: func(m map[time.Time]currencyMap, err error) {
+			verify: func(rates *Rates, err error) {
 				if err != nil {
 					t.Error(err)
 				}
 
-				if len(m) != 2 {
-					t.Errorf("expected only two entry, got: %d", len(m))
+				if len(rates.rates) != 2 {
+					t.Errorf("expected only two entry, got: %d", len(rates.rates))
 				}
 				t1 := time.Date(2022, 1, 4, 0, 0, 0, 0, time.Local)
-				if _, ok := m[t1]; !ok {
+				if _, ok := rates.rates[t1]; !ok {
 					t.Errorf("missing %v time in map", t1)
 				}
 				t2 := time.Date(2022, 1, 3, 0, 0, 0, 0, time.Local)
-				if _, ok := m[t1]; !ok {
+				if _, ok := rates.rates[t1]; !ok {
 					t.Errorf("missing %v time in map", t2)
 				}
 			},
@@ -47,7 +48,7 @@ func TestECBConverter_makeRatesMap(t *testing.T) {
 					{Date: Date("invalid date")},
 				},
 			},
-			verify: func(m map[time.Time]currencyMap, err error) {
+			verify: func(m *Rates, err error) {
 				if _, ok := err.(InvalidDateFormat); !ok {
 					t.Errorf("expecting InvalidDateFormat got: %v", err)
 				}
@@ -60,18 +61,139 @@ func TestECBConverter_makeRatesMap(t *testing.T) {
 					{Date: Date("2022-12-12"), Rates: []Rate{{Currency: "UNKNOWN"}}},
 				},
 			},
-			verify: func(m map[time.Time]currencyMap, err error) {
+			verify: func(m *Rates, err error) {
 				if _, ok := err.(InvalidCurrency); !ok {
 					t.Errorf("expecting InvalidCurrency got: %v", err)
 				}
 			},
 		},
+		{
+			name: "validate first and last date",
+			data: &ECBResponseData{
+				Data: []Data{
+					{Date: Date("2022-5-5"), Rates: []Rate{{Currency: "USD"}}},
+					{Date: Date("2023-1-1"), Rates: []Rate{{Currency: "USD"}}},
+					{Date: Date("2022-4-3"), Rates: []Rate{{Currency: "USD"}}},
+					{Date: Date("2022-1-1"), Rates: []Rate{{Currency: "USD"}}},
+					{Date: Date("2022-5-3"), Rates: []Rate{{Currency: "USD"}}},
+				},
+			},
+			verify: func(m *Rates, err error) {
+				if err != nil {
+					t.Error(err)
+				}
+				if m.first != time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local) {
+					t.Errorf("invalid first date in rates: %v", m.first)
+				}
+				if m.last != time.Date(2023, 1, 1, 0, 0, 0, 0, time.Local) {
+					t.Errorf("invalid last date in rates: %v", m.last)
+				}
+			},
+		},
 	}
 
-	converter := New(&ECBClientMock{})
+	converter := New(&ECBClientMock{}, nil)
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
-			test.verify(converter.makeRatesMap(test.data))
+			test.verify(converter.newRates(test.data))
+		})
+	}
+}
+
+func TestEcbConverter_GetRates(t *testing.T) {
+	tt := []struct {
+		name   string
+		date   time.Time
+		c      ECBConverter
+		verify func(rates *Rates, err error)
+	}{
+		{
+			name: "using cache without cached data",
+			date: time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local),
+			c: ECBConverter{cache: true, cached: nil, client: &ECBClientMock{
+				GetRatesMock: func() (*ECBResponseData, error) {
+					return &ECBResponseData{
+						Data: []Data{
+							{
+								Date:  Date("2022-1-1"),
+								Rates: []Rate{{Currency: "USD", Rate: 2}},
+							},
+						},
+					}, nil
+				},
+			}},
+			verify: func(rates *Rates, err error) {
+				if err != nil {
+					t.Error(err)
+				}
+				if len(rates.rates) != 1 {
+					t.Errorf("expecting one rate got: %d", len(rates.rates))
+				}
+				if _, ok := rates.rates[time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)]; !ok {
+					t.Errorf("missing rate at date '2022-1-1'")
+				}
+			},
+		},
+		{
+			name: "using cache with cached data",
+			date: time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local),
+			c: ECBConverter{
+				cache:  true,
+				logger: log.New(),
+				cached: &Rates{
+					rates: map[time.Time]currencyMap{
+						time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local): {
+							currency.USD: 1.5,
+						},
+					}},
+			},
+			verify: func(rates *Rates, err error) {
+				if err != nil {
+					t.Error(err)
+				}
+				if len(rates.rates) != 1 {
+					t.Errorf("expecting one rate got: %d", len(rates.rates))
+				}
+				if _, ok := rates.rates[time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)]; !ok {
+					t.Errorf("missing rate at date '2022-1-1'")
+				}
+			},
+		},
+		{
+			name: "getting rates without caching",
+			date: time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local),
+			c: ECBConverter{
+				cache: false,
+				client: &ECBClientMock{
+					GetRatesMock: func() (*ECBResponseData, error) {
+						return &ECBResponseData{
+							Data: []Data{
+								{
+									Date:  Date("2022-1-1"),
+									Rates: []Rate{{Currency: "USD", Rate: 2}},
+								},
+							},
+						}, nil
+					},
+				},
+			},
+			verify: func(rates *Rates, err error) {
+				if err != nil {
+					t.Error(err)
+				}
+				if len(rates.rates) != 1 {
+					t.Errorf("expecting one rate got: %d", len(rates.rates))
+				}
+				if _, ok := rates.rates[time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)]; !ok {
+					t.Errorf("missing rate at date '2022-1-1'")
+				}
+			},
+		},
+	}
+
+	for _, test := range tt {
+		t.Run(test.name, func(t *testing.T) {
+			test.verify(test.c.GetRates(test.date))
 		})
 	}
 }
@@ -242,7 +364,8 @@ func TestECBConverter_Convert(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
-			converter := New(&ECBClientMock{GetRatesMock: test.GetRatesMock})
+			logger := log.New()
+			converter := New(&ECBClientMock{GetRatesMock: test.GetRatesMock}, logger)
 			test.verify(converter.Convert(test.date, test.value, test.from, test.to))
 		})
 	}

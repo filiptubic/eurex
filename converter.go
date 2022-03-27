@@ -5,10 +5,15 @@ import (
 
 	"github.com/filiptubic/eurex/currency"
 	"github.com/filiptubic/eurex/ecb"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
-	DefaultConverter = ecb.New(&ecb.ECBClient{Url: "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"})
+	DefaultLogger    = log.New()
+	DefaultConverter = ecb.New(
+		ecb.NewECBClient("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml", DefaultLogger),
+		DefaultLogger,
+	)
 )
 
 type ConverterInterface interface {

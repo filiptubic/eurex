@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func TestECBClient_GetRates(t *testing.T) {
@@ -59,8 +61,8 @@ func TestECBClient_GetRates(t *testing.T) {
 			ts := httptest.NewServer(test.handler)
 			defer ts.Close()
 
-			client := New(&ECBClient{Url: ts.URL})
-			test.verify(client.client.GetRates())
+			client := NewECBClient(ts.URL, log.New())
+			test.verify(client.GetRates())
 		})
 	}
 }

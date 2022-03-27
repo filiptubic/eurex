@@ -4,35 +4,87 @@ import (
 	"time"
 
 	"github.com/filiptubic/eurex/currency"
+	log "github.com/sirupsen/logrus"
 )
 
 type currencyMap map[currency.Currency]float64
 
+type Rates struct {
+	first, last time.Time
+	rates       map[time.Time]currencyMap
+}
+
 type ECBConverter struct {
+	logger *log.Logger
+	cache  bool
+	cached *Rates
 	client ECBClientInterface
 }
 
-func New(client ECBClientInterface) *ECBConverter {
-	return &ECBConverter{client: client}
+func New(client ECBClientInterface, logger *log.Logger) *ECBConverter {
+	if logger == nil {
+		logger = log.New()
+	}
+	return &ECBConverter{client: client, logger: logger}
 }
 
-func (c *ECBConverter) makeRatesMap(data *ECBResponseData) (map[time.Time]currencyMap, error) {
-	rates := make(map[time.Time]currencyMap)
+func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {
+	rates := &Rates{
+		rates: make(map[time.Time]currencyMap),
+	}
+
 	for _, date := range data.Data {
 		t, err := date.Date.toTime()
 		if err != nil {
 			return nil, err
 		}
 
-		rates[t] = make(currencyMap)
+		zeroTime := time.Time{}
+		if rates.first == zeroTime {
+			rates.first = t
+		} else if rates.first.After(t) {
+			rates.first = t
+		}
+
+		if rates.last == zeroTime {
+			rates.last = t
+		} else if rates.last.Before(t) {
+			rates.last = t
+		}
+
+		rates.rates[t] = make(currencyMap)
+
 		for _, rate := range date.Rates {
 			currency, ok := currency.Currencies[rate.Currency]
 			if !ok {
 				return nil, InvalidCurrency{currency: rate.Currency}
 			}
-			rates[t][currency] = rate.Rate
+			rates.rates[t][currency] = rate.Rate
 		}
 	}
+	return rates, nil
+}
+
+func (c *ECBConverter) GetRates(date time.Time) (*Rates, error) {
+	if c.cache && c.cached != nil && c.cached.rates != nil {
+		if _, ok := c.cached.rates[date]; ok {
+			c.logger.Debugf("using cached rates for date %v", date)
+			return c.cached, nil
+		}
+	}
+
+	data, err := c.client.GetRates()
+	if err != nil {
+		return nil, err
+	}
+	rates, err := c.newRates(data)
+	if err != nil {
+		return nil, err
+	}
+	if c.cache {
+		c.cached = rates
+	}
+
 	return rates, nil
 }
 
@@ -49,23 +101,18 @@ func (c *ECBConverter) Convert(date time.Time, value float64, from, to currency.
 		return value, nil
 	}
 
-	data, err := c.client.GetRates()
-	if err != nil {
-		return -1, err
-	}
-
-	ratesMap, err := c.makeRatesMap(data)
+	rates, err := c.GetRates(date)
 	if err != nil {
 		return -1, err
 	}
 
 	if from == currency.EUR {
-		return value * ratesMap[date][to], nil
+		return value * rates.rates[date][to], nil
 	}
 
 	if to == currency.EUR {
-		return value / ratesMap[date][from], nil
+		return value / rates.rates[date][from], nil
 	}
 
-	return (value * ratesMap[date][to]) / ratesMap[date][from], nil
+	return (value * rates.rates[date][to]) / rates.rates[date][from], nil
 }
