@@ -82,12 +82,14 @@ func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 				return err
 			}
 
+			// returning error will result in retry, so 5xx errors are retryable
 			if resp.StatusCode/100 == 5 {
 				return ECBClientError{statusCode: resp.StatusCode}
 			}
 
 			return nil
 		},
+		// first attempt is not retry, therefore retry+1
 		retry.Attempts(uint(c.options.retry+1)),
 		retry.Delay(c.options.wait),
 		retry.OnRetry(func(n uint, err error) {
@@ -99,6 +101,7 @@ func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 	}
 
 	if resp.StatusCode/100 != 2 {
+		// eg. 4xx is not retryable and should throw an error
 		c.logger.Errorf("[GET] %v: code=%d", url.String(), resp.StatusCode)
 		return nil, ECBClientError{statusCode: resp.StatusCode}
 	}

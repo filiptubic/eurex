@@ -52,6 +52,7 @@ func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {
 			return nil, err
 		}
 
+		// set earliest date
 		zeroTime := time.Time{}
 		if rates.first == zeroTime {
 			rates.first = t
@@ -59,6 +60,7 @@ func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {
 			rates.first = t
 		}
 
+		// set latest date
 		if rates.last == zeroTime {
 			rates.last = t
 		} else if rates.last.Before(t) {
@@ -82,12 +84,14 @@ func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {
 // When caching is enabled, and cache is present, new data is added to cache only when queried date is not found inside cache.
 func (c *ECBConverter) GetRates(date time.Time) (*Rates, error) {
 	if c.cache && c.cached != nil && c.cached.rates != nil {
+		// if rates are cached for queried date, just return it, don't make http call
 		if _, ok := c.cached.rates[date]; ok {
 			c.logger.Debugf("using cached rates for date %v", date)
 			return c.cached, nil
 		}
 	}
 
+	// fetch data from ECB
 	data, err := c.client.GetRates()
 	if err != nil {
 		return nil, err

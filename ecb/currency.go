@@ -51,6 +51,7 @@ func IsValidCurrency(c currency.Currency, date time.Time) bool {
 		return false
 	}
 
+	// Russian RUB is invalid on ECB after 1. March 2022
 	rubValidTo := time.Date(2022, time.March, 1, 0, 0, 0, 0, time.Local)
 	if c == currency.RUB && date.After(rubValidTo) {
 		return false
