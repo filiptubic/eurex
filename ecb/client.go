@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/avast/retry-go"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -64,20 +65,28 @@ func (c *ECBClient) GetRates() (*ECBResponseData, error) {
 
 	var resp *http.Response
 	var err error
-	retry := 0
-	for {
-		resp, err = http.Get(url.String())
-		if err != nil {
-			return nil, err
-		}
 
-		if resp.StatusCode/100 != 5 || retry == c.options.retry {
-			break
-		}
-		retry++
+	err = retry.Do(
+		func() error {
+			resp, err = http.Get(url.String())
+			if err != nil {
+				return err
+			}
 
-		c.logger.Errorf("[GET] %v: retrying on 5xx error", url.String())
-		time.Sleep(c.options.wait)
+			if resp.StatusCode/100 == 5 {
+				return ECBClientError{statusCode: resp.StatusCode}
+			}
+
+			return nil
+		},
+		retry.Attempts(uint(c.options.retry+1)),
+		retry.Delay(c.options.wait),
+		retry.OnRetry(func(n uint, err error) {
+			c.logger.Errorf("[retry=%d] retrying on %v", n, err)
+		}),
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	if resp.StatusCode/100 != 2 {

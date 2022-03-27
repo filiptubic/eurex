@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/avast/retry-go"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,13 +47,24 @@ func TestECBClient_GetRates(t *testing.T) {
 			},
 		},
 		{
+			name: "4xx error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusBadRequest)
+			},
+			verify: func(data *ECBResponseData, err error) {
+				if _, ok := err.(ECBClientError); !ok {
+					t.Fatalf("expecting ECBClientError from server, got: %v", err)
+				}
+			},
+		},
+		{
 			name: "server error",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 			},
 			verify: func(data *ECBResponseData, err error) {
-				if err == nil {
-					t.Fatalf("expecting error from server")
+				if _, ok := err.(retry.Error); !ok {
+					t.Fatalf("expecting retry.Error from server, got: %v", err)
 				}
 			},
 		},
