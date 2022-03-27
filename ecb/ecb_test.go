@@ -264,7 +264,7 @@ func ExampleECBConverter_Convert() {
 	}
 
 	fmt.Println(converted)
-	// Outputs: 15
+	// Output: 15
 }
 
 func TestECBConverter_Convert(t *testing.T) {

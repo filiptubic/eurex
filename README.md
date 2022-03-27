@@ -6,11 +6,11 @@ Rates which are applied are configurable and currently only supported rate sourc
 
 ## Quickstart
 ### Install 
+Open terminal and invoke:
 ```
 go get -u github.com/filiptubic/eurex
 ```
 ### Example
-
 Convert 10 USD to CHF on 25. March 2022:
 ```
 package main
@@ -43,11 +43,11 @@ INFO[0000] 9.277404108343935
 ```
 
 ## Tests
+Clone repo and invoke in project root:
 ```
 go test -coverprofile=coverage.out ./... -v
 ```
 
 ## Docs
-```
-godoc
-```
+Docs are available [here](https://pkg.go.dev/github.com/filiptubic/eurex).
+Docs are locally available by invoking `godoc` and opening http://localhost:6060/pkg/github.com/filiptubic/eurex/ in browser.
