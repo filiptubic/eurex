@@ -160,6 +160,46 @@ func TestEcbConverter_GetRates(t *testing.T) {
 			},
 		},
 		{
+			name: "using cache with missing new data",
+			date: time.Date(2022, 1, 2, 0, 0, 0, 0, time.Local),
+			c: ECBConverter{
+				cache:  true,
+				logger: log.New(),
+				cached: &Rates{
+					rates: map[time.Time]currencyMap{
+						time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local): {
+							currency.USD: 1.5,
+						},
+					},
+				},
+				client: &ECBClientMock{GetRatesMock: func() (*ECBResponseData, error) {
+					return &ECBResponseData{
+						Data: []Data{
+							{
+								Date:  Date("2022-1-1"),
+								Rates: []Rate{{Currency: "USD", Rate: 2}},
+							},
+							{
+								Date:  Date("2022-1-2"),
+								Rates: []Rate{{Currency: "USD", Rate: 3}},
+							},
+						},
+					}, nil
+				}},
+			},
+			verify: func(rates *Rates, err error) {
+				if err != nil {
+					t.Error(err)
+				}
+				if len(rates.rates) != 2 {
+					t.Errorf("expecting two rates got: %d", len(rates.rates))
+				}
+				if _, ok := rates.rates[time.Date(2022, 1, 2, 0, 0, 0, 0, time.Local)]; !ok {
+					t.Errorf("missing rate at date '2022-1-1'")
+				}
+			},
+		},
+		{
 			name: "getting rates without caching",
 			date: time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local),
 			c: ECBConverter{
