@@ -21,11 +21,11 @@ type ECBConverter struct {
 	client ECBClientInterface
 }
 
-func New(client ECBClientInterface, logger *log.Logger) *ECBConverter {
+func New(client ECBClientInterface, cache bool, logger *log.Logger) *ECBConverter {
 	if logger == nil {
 		logger = log.New()
 	}
-	return &ECBConverter{client: client, logger: logger}
+	return &ECBConverter{client: client, cache: cache, logger: logger}
 }
 
 func (c *ECBConverter) newRates(data *ECBResponseData) (*Rates, error) {

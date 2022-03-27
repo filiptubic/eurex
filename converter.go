@@ -12,6 +12,7 @@ var (
 	DefaultLogger    = log.New()
 	DefaultConverter = ecb.New(
 		ecb.NewECBClient("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml", DefaultLogger),
+		true,
 		DefaultLogger,
 	)
 )

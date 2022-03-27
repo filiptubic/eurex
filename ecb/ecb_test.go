@@ -92,7 +92,7 @@ func TestECBConverter_newRates(t *testing.T) {
 		},
 	}
 
-	converter := New(&ECBClientMock{}, nil)
+	converter := New(&ECBClientMock{}, false, nil)
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
 			test.verify(converter.newRates(test.data))
@@ -365,7 +365,7 @@ func TestECBConverter_Convert(t *testing.T) {
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
 			logger := log.New()
-			converter := New(&ECBClientMock{GetRatesMock: test.GetRatesMock}, logger)
+			converter := New(&ECBClientMock{GetRatesMock: test.GetRatesMock}, false, logger)
 			test.verify(converter.Convert(test.date, test.value, test.from, test.to))
 		})
 	}
